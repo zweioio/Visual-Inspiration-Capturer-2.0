@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="panel.css">
+</head>
+<body>
+  <div id="vic-floating-panel-container">
+    
+    <!-- 顶部全局导航栏 (完全对齐截图) -->
+    <div id="vic-global-nav">
+      <div class="vic-nav-left">
+        <div class="vic-drag-handle" title="拖拽面板">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4 2.5C4 3.32843 3.32843 4 2.5 4C1.67157 4 1 3.32843 1 2.5C1 1.67157 1.67157 1 2.5 1C3.32843 1 4 1.67157 4 2.5ZM4 6.5C4 7.32843 3.32843 8 2.5 8C1.67157 8 1 7.32843 1 6.5C1 5.67157 1.67157 5 2.5 5C3.32843 5 4 5.67157 4 6.5ZM2.5 12C3.32843 12 4 11.3284 4 10.5C4 9.67157 3.32843 9 2.5 9C1.67157 9 1 9.67157 1 10.5C1 11.3284 1.67157 12 2.5 12ZM11 2.5C11 3.32843 10.3284 4 9.5 4C8.67157 4 8 3.32843 8 2.5C8 1.67157 8.67157 1 9.5 1C10.3284 1 11 1.67157 11 2.5ZM9.5 8C10.3284 8 11 7.32843 11 6.5C11 5.67157 10.3284 5 9.5 5C8.67157 5 8 5.67157 8 6.5C8 7.32843 8.67157 8 9.5 8ZM11 10.5C11 11.3284 10.3284 12 9.5 12C8.67157 12 8 11.3284 8 10.5C8 9.67157 8.67157 9 9.5 9C10.3284 9 11 9.67157 11 10.5Z" fill="#A1A1AA"/></svg>
+        </div>
+        <span class="vic-nav-label" style="margin-left: 8px; font-weight: 600; color: #1d1d1f;">Visual Inspiration</span>
+      </div>
+      <div class="vic-nav-right">
+        <button class="vic-icon-btn" id="vic-panel-close" title="关闭"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+      </div>
+    </div>
+
+    <!-- 内部容器由 content.js 动态填充，此文件作为模板提供给 content script 加载 -->
+    
+    <div id="vic-panel-tabs">
+      <div class="vic-tab-nav-row">
+        <button class="vic-tab-btn" data-target="vic-tab-all">全部</button>
+        <button class="vic-tab-btn" data-target="vic-tab-fonts">字体 <span class="vic-tab-count" id="count-fonts">0</span></button>
+        <button class="vic-tab-btn" data-target="vic-tab-colors">颜色 <span class="vic-tab-count" id="count-colors">0</span></button>
+        <button class="vic-tab-btn" data-target="vic-tab-assets">素材 <span class="vic-tab-count" id="count-assets">0</span></button>
+        <button class="vic-tab-btn active" data-target="vic-tab-inspector" style="display:none;">审查详情</button>
+      </div>
+    </div>
+
+    <div id="vic-panel-content">
+      <!-- Loading 状态 -->
+      <div id="vic-loading" class="vic-loading" style="display: none;">
+        <div class="vic-spinner"></div>
+        <p>正在扫描全站样式与素材...</p>
+      </div>
+
+      <!-- Tab: 审查 (Inspector) - 默认激活 -->
+      <div id="vic-tab-inspector" class="vic-tab-pane active">
+        <!-- 未选中元素时的提示 -->
+        <div id="vic-inspector-empty" style="text-align: center; color: #86868b; padding: 40px 20px; font-size: 13px;">
+          <div style="font-size: 32px; margin-bottom: 12px;">🖱️</div>
+          请把鼠标移动到网页上<br>点击任意元素查看其详细 CSS
+        </div>
+
+        <!-- 选中元素后的详细信息 -->
+        <div id="vic-inspector-details" style="display: none;">
+          <!-- 元素类型与标签 -->
+          <div class="vic-inspector-header">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <div>
+                <div class="vic-tag-name" id="vic-insp-tag">Div</div>
+                <div class="vic-selector" id="vic-insp-selector">div.unit-wrapper</div>
+              </div>
+              <button class="vic-primary-btn" id="vic-show-code-btn">Show code</button>
+            </div>
+            <div class="vic-context-toggle">
+              <label class="vic-switch">
+                <input type="checkbox" id="vic-context-menu-toggle">
+                <span class="vic-slider round"></span>
+              </label>
+              <span class="vic-toggle-label">Context menu while hovering</span>
+            </div>
+          </div>
+
+          <!-- 盒模型图示 -->
+          <div class="vic-box-model-container">
+            <div class="vic-box-margin">
+              <span class="vic-bm-label top" id="bm-margin-top">-</span>
+              <span class="vic-bm-label bottom" id="bm-margin-bottom">-</span>
+              <span class="vic-bm-label left" id="bm-margin-left">-</span>
+              <span class="vic-bm-label right" id="bm-margin-right">-</span>
+              <div class="vic-box-padding">
+                <span class="vic-bm-label top" id="bm-padding-top">-</span>
+                <span class="vic-bm-label bottom" id="bm-padding-bottom">-</span>
+                <span class="vic-bm-label left" id="bm-padding-left">-</span>
+                <span class="vic-bm-label right" id="bm-padding-right">-</span>
+                <div class="vic-box-content" id="bm-content-size">
+                  1800 X 692
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 文本属性 (Text properties) -->
+          <div class="vic-inspector-section">
+            <h3 class="vic-section-title">Text properties</h3>
+            <div class="vic-prop-list">
+              <div class="vic-prop-row"><span class="vic-prop-label">Font Family</span><span class="vic-prop-val" id="vic-insp-font-family">-</span></div>
+              <div class="vic-prop-row"><span class="vic-prop-label">Font Size</span><span class="vic-prop-val" id="vic-insp-font-size">-</span></div>
+              <div class="vic-prop-row"><span class="vic-prop-label">Line Height</span><span class="vic-prop-val" id="vic-insp-line-height">-</span></div>
+              <div class="vic-prop-row"><span class="vic-prop-label">Font Weight</span><span class="vic-prop-val" id="vic-insp-font-weight">-</span></div>
+              <div class="vic-prop-row"><span class="vic-prop-label">Letter Spacing</span><span class="vic-prop-val" id="vic-insp-letter-spacing">-</span></div>
+              <div class="vic-prop-row">
+                <span class="vic-prop-label">Text color</span>
+                <div class="vic-color-val-wrap" id="vic-insp-color-wrap">
+                  <div class="vic-color-dot" id="vic-insp-color-dot"></div>
+                  <span class="vic-prop-val" id="vic-insp-color-hex">-</span>
+                  <button class="vic-copy-btn">📋</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <hr class="vic-divider">
+
+          <!-- 选择颜色与对比度 (Selection colors & Contrast) -->
+          <div class="vic-inspector-section">
+            <h3 class="vic-section-title">Selection colors</h3>
+            <div class="vic-selection-colors">
+              <div class="vic-sel-color-box">
+                <span class="vic-sel-label">Text</span>
+                <div class="vic-sel-hex-card dark" id="vic-sel-text-card">
+                  <span id="vic-sel-text-hex">#1D1D1F</span>
+                  <button class="vic-copy-btn">📋</button>
+                </div>
+              </div>
+              <div class="vic-sel-color-box">
+                <span class="vic-sel-label">Background</span>
+                <div class="vic-sel-hex-card light" id="vic-sel-bg-card">
+                  <span id="vic-sel-bg-hex">#FFFFFF</span>
+                  <button class="vic-copy-btn">📋</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="vic-contrast-card">
+              <div class="vic-contrast-header">
+                <span class="vic-contrast-title">Contrast</span>
+              </div>
+              <div class="vic-contrast-score-row">
+                <span class="vic-contrast-ratio" id="vic-contrast-ratio">16.8 : 1</span>
+                <span class="vic-contrast-badge" id="vic-contrast-badge">✅ Excellent</span>
+              </div>
+            </div>
+          </div>
+
+          <hr class="vic-divider">
+
+          <!-- 元素属性 (Element properties) -->
+          <div class="vic-inspector-section">
+            <h3 class="vic-section-title">Element properties</h3>
+            <div class="vic-prop-list">
+              <div class="vic-prop-row"><span class="vic-prop-label">Width</span><span class="vic-prop-val" id="vic-insp-width">-</span></div>
+              <div class="vic-prop-row"><span class="vic-prop-label">Height</span><span class="vic-prop-val" id="vic-insp-height">-</span></div>
+              <div class="vic-prop-row"><span class="vic-prop-label">Border Radius</span><span class="vic-prop-val" id="vic-insp-radius">-</span></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Tab: 全部 -->
+      <div id="vic-tab-all" class="vic-tab-pane">
+        <div class="vic-section-title">主要字体</div>
+        <div id="vic-all-fonts-container" class="vic-font-list"></div>
+        
+        <div class="vic-section-title">主要颜色</div>
+        <div id="vic-all-colors-container" class="vic-color-grid"></div>
+      </div>
+
+      <!-- Tab: 字体 -->
+      <div id="vic-tab-fonts" class="vic-tab-pane">
+        <div class="vic-section-title">
+          <span>所有字体 (<span id="title-count-fonts">0</span>)</span>
+        </div>
+        <div id="vic-fonts-container" class="vic-font-list"></div>
+      </div>
+
+      <!-- Tab: 颜色 -->
+      <div id="vic-tab-colors" class="vic-tab-pane">
+        <div class="vic-section-title">
+          <span>所有颜色 (<span id="title-count-colors">0</span>)</span>
+          <div class="vic-btn-group">
+            <select id="vic-color-format" class="vic-select-mini">
+              <option value="hex">HEX</option>
+              <option value="rgb">RGB</option>
+            </select>
+            <button class="vic-primary-btn" id="vic-export-colors-btn" title="导出为 JSON">导出</button>
+            <button class="vic-icon-btn active" id="vic-view-grid" title="宫格视图">⊞</button>
+            <button class="vic-icon-btn" id="vic-view-list" title="列表视图">≣</button>
+          </div>
+        </div>
+        <div id="vic-colors-container" class="vic-color-grid"></div>
+      </div>
+
+      <!-- Tab: 素材 -->
+      <div id="vic-tab-assets" class="vic-tab-pane">
+        <div class="vic-section-title">
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <span>图片 (<span id="title-count-assets">0</span>)</span>
+            <select id="vic-assets-filter" class="vic-select-mini">
+              <option value="all">全部</option>
+              <option value="svg">SVG</option>
+              <option value="img">IMG/BG</option>
+            </select>
+          </div>
+          <div class="vic-btn-group">
+            <button class="vic-icon-btn" id="vic-bg-toggle-btn" title="切换背景颜色">🌗</button>
+            <button class="vic-primary-btn" id="vic-export-assets-btn">全部导出</button>
+          </div>
+        </div>
+        <div id="vic-assets-container" class="vic-assets-grid"></div>
+      </div>
+    </div>
+    
+    <div id="vic-toast" class="vic-toast"></div>
+  </div>
+</body>
+</html>

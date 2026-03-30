@@ -1,0 +1,35 @@
+{
+  "manifest_version": 3,
+  "name": "Visual Inspiration Capturer",
+  "version": "2.0",
+  "description": "专为设计师打造的灵感捕获工具，一键提取网页样式、字体、颜色和素材",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage",
+    "downloads"
+  ],
+  "action": {
+    "default_title": "Visual Inspiration Capturer"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "css": ["panel.css"],
+      "js": [
+        "jszip.min.js",
+        "html2canvas.min.js",
+        "content.js"
+      ]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["panel.html"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
